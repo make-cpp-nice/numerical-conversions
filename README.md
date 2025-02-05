@@ -1,4 +1,5 @@
-# Numerical conversions to use instead of static_cast
+
+## Numerical conversions to use instead of static_cast
 
 A set of dedicated numerical conversions that are a better choice than the canonical application static_cast. 
 
@@ -30,30 +31,32 @@ double ratio_of_integers = (double_here)x/y;
 //Pythagoras Theorem without loosing precision 
 double c = approx_to<double>(sqrt((long_double_here)a*a + (long_double_here)b*b));
 
+I hope that it was an easier read than it would be have been had all those conversion been represented by static_cast.
+
 Every conversion is zero overhead when overflow checking is not enabled, except for round_to which performs rounding. Like static_cast, they will not allow an integer to swallow a pointer but go beyond that by being tightly typed to only accept template parameters and argument types that correspond to the conversion they represent. Here is the full list:
 
 T to_signed(arg) arg must be unsigned and T will be be the signed version of arg type.
-Optionally T may be declared explicitly to_signed<T>(arg) where T must be signed and not narrower than the arg type. Overflow will throw if checking enabled.
-T to_unsigned(arg) arg must be signed and T will be be the unsigned version of arg. Optionally T may be declared explicitly to_unsigned<T>(arg) where T must be unsigned and not narrower than the arg type. Overflow will throw if checking enabled.
-T narrow_to<T>(arg) Must represent a narrowing of integer type width and may also include conversion between signed and unsigned in either direction. Overflow will throw if checking enabled.
+Optionally T may be declared explicitly to_signed<T>(arg) where T must be signed and can be wider or narrower than the arg type. 
+T to_unsigned(arg) arg must be signed and T will be be the unsigned version of arg. Optionally T may be declared explicitly to_unsigned<T>(arg) where T must be unsigned and can be wider or narrower than the arg type. 
+T narrow_to<T>(arg) Narrowing of integer type width that does not involve change of signedness. T and arg must both be integers, both signed or both unsigned and   T must be narrower than the arg type.
 
 The variants to_signed_cast,  to_unsigned_cast, narrow_cast_to which do the same as the above but indicate that an exploitation of the defined results of overflow is intended and they will not throw if one occurs.
 
-T round_to<T>(arg) Must represent a conversion from floating point to integer and will return the best integer representation of arg. Overflow is undefined and will throw if checking enabled.
-T truncate_to<T>(arg) Must represent a conversion from floating point to integer and will truncate arg to the nearest whole number. Overflow is undefined and will throw if checking enabled.
+T round_to<T>(arg) Must represent a conversion from floating point to integer and will return the best integer representation of arg. 
+T truncate_to<T>(arg) Must represent a conversion from floating point to integer and will truncate arg to the nearest whole number.
 
-T approx_to<T>(arg) T must be floating point and arg may be a wider floating point type or an integer type whose full precision cannot be represented by T (the same width or wider). Although precision may be lost, overflow will not occur.
+T approx_to<T>(arg) T must be floating point and arg must be a wider floating point type or an integer type whose full precision cannot be represented by T (the same width or wider). Although precision may be lost, overflow will not occur.
 
-T promote_to<T>(arg) Must represent a promotion that is guaranteed to succeed without overflow or loss of precision. There must be a promotion.
+T promote_to<T>(arg) Must represent a promotion that is guaranteed to succeed without overflow or loss of precision. There must be a promotion – it cannot be applied redundantly.
 
-T promote_here<T>(arg) Does the same as promote_to but can also be applied redundantly making it equivalent to brace initialisation – it will not narrow. It is designed specifically for in place forced promotions as the name suggests. It is implemented as a type of functor that permits prefix application (promote_as<T>) arg which remains useful for forced promotions within expressions, although you will probably prefer to use one of the aliases defined below:
+T promote_here<T>(arg) Does the same as promote_to but can also be applied redundantly making it equivalent to brace initialisation – it will not narrow. It is designed specifically for in place forced promotions as the name suggests. It is implemented as a type of functor that permits prefix application (promote_here<T>) arg which remains useful for forced promotions within expressions, although you will probably prefer to use one of the aliases defined below:
 
 Using double_here = promote_here<double>;
 Using long_double_here = promote_here<long double>;
 Using long_long_here = promote_here<long long>;
 
 e.g. 
-double ratio_of_integers = (double_here)x/y; //equivalent to double{x}/y
+double ratio_of_integers = (double_here) x/y; //equivalent to double{x}/y
 	
 
 All of these conversions can optionally be more tightly typed using a second template parameter to fix the type of the argument. e.g 
@@ -64,9 +67,17 @@ They cover and characterise every possible conversion between numerical types. T
 
 Which to use where?  The use of some of them will be mandated by the need to resolve unwanted warnings:
 “signed/unsigned mismatch” - to_signed and to_unsigned 
-“possible loss of data” - narrow_to 
-“possible loss of precision” - round_to, truncate_to, approx_to
+“possible loss of data” - narrow_to,  to_signed<T> and to_unsigned <T>
+“possible loss of precision” - round_to<T>, truncate_to<T>, approx_to<T>
 But warnings cannot be relied on to flag up every potentially hazardous conversion. If you can't apply promote_to or promote_here then you will need one of the above and only one of them will fit. 
+
+In turn each conversion that you use keeps it's potential hazards visible in its name:
+
+to_signed, to_unsigned and narrow_to can all overflow and will throw if overflow checking is enabled.
+to_signed_cast, to_unsigned_cast and narrow_cast_to can also overflow but indicate an intention to exploit the defined results of overflow. They will not throw even if overflow checking is enabled.
+round_to and truncate_to will overflow if converting a number that is too large (more than 2 billion in the case of a 32 bit int). The result of overflow is undefined and will throw if overflow checking is enabled.
+approx_to may loose precision but will not overflow (unless you are trying to estimate the number of atoms in the universe)
+promote_to and promote_here can never overflow nor loose precision
 
 Overflow checking is a pre-compiler option. By default it is enabled in Debug builds and absent in Release builds but you can override this by defining XNR_CONVERSION_OVERFLOW_CHECKING before including numerical_conversions.h. 
 #define XNR_CONVERSION_OVERFLOW_CHECKING 1 
