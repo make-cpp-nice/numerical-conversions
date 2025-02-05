@@ -1,9 +1,9 @@
 
 ## Numerical conversions to use instead of static_cast
 
-A set of dedicated numerical conversions that are a better choice than the canonical application static_cast. 
+A set of dedicated numerical conversions that are a better choice than the canonical application of ```static_cast```. 
 
-static_cast is used as a safety measure to prevent the accidental conversion of a pointer by integer types. However  it is not helpful to tar all numerical conversions with the same brush and even more so when that same brush is also used for pointer casting. 
+```static_cast```is used as a safety measure to prevent the accidental conversion of a pointer by integer types. However  it is not helpful to tar all numerical conversions with the same brush and even more so when that same brush is also used for pointer casting. 
 
 Provided here is a more fine grained and restrictive set of dedicated numerical conversions to use instead. Their names describe what they do and that allows them to sit much more comfortably in the code in which they are used. 
 
@@ -35,21 +35,21 @@ I hope that it was an easier read than it would be have been had all those conve
 
 Every conversion is zero overhead when overflow checking is not enabled, except for round_to which performs rounding. Like static_cast, they will not allow an integer to swallow a pointer but go beyond that by being tightly typed to only accept template parameters and argument types that correspond to the conversion they represent. Here is the full list:
 
-+ T to_signed(arg) arg must be unsigned and T will be be the signed version of arg type.
++ ```T to_signed(arg)``` arg must be unsigned and T will be be the signed version of arg type.
 Optionally T may be declared explicitly to_signed<T>(arg) where T must be signed and can be wider or narrower than the arg type. 
-+ T to_unsigned(arg) arg must be signed and T will be be the unsigned version of arg. Optionally T may be declared explicitly to_unsigned<T>(arg) where T must be unsigned and can be wider or narrower than the arg type. 
-+ T narrow_to<T>(arg) Narrowing of integer type width that does not involve change of signedness. T and arg must both be integers, both signed or both unsigned and   T must be narrower than the arg type.
++ ```T to_unsigned(arg)``` arg must be signed and T will be be the unsigned version of arg. Optionally T may be declared explicitly to_unsigned<T>(arg) where T must be unsigned and can be wider or narrower than the arg type. 
++ ```T narrow_to<T>(arg)``` Narrowing of integer type width that does not involve change of signedness. T and arg must both be integers, both signed or both unsigned and   T must be narrower than the arg type.
 
-+ The variants to_signed_cast,  to_unsigned_cast, narrow_cast_to which do the same as the above but indicate that an exploitation of the defined results of overflow is intended and they will not throw if one occurs.
++ The variants ```to_signed_cast```,  ```to_unsigned_cast```, ```narrow_cast_to``` which do the same as the above but indicate that an exploitation of the defined results of overflow is intended and they will not throw if one occurs.
 
-+ T round_to<T>(arg) Must represent a conversion from floating point to integer and will return the best integer representation of arg. 
-+ T truncate_to<T>(arg) Must represent a conversion from floating point to integer and will truncate arg to the nearest whole number.
++ ```T round_to<T>(arg)``` Must represent a conversion from floating point to integer and will return the best integer representation of arg. 
++ ```T truncate_to<T>(arg)``` Must represent a conversion from floating point to integer and will truncate arg to the nearest whole number.
 
-+ T approx_to<T>(arg) T must be floating point and arg must be a wider floating point type or an integer type whose full precision cannot be represented by T (the same width or wider). Although precision may be lost, overflow will not occur.
++ ```T approx_to<T>(arg)``` T must be floating point and arg must be a wider floating point type or an integer type whose full precision cannot be represented by T (the same width or wider). Although precision may be lost, overflow will not occur.
 
-+ T promote_to<T>(arg) Must represent a promotion that is guaranteed to succeed without overflow or loss of precision. There must be a promotion – it cannot be applied redundantly.
++ ```T promote_to<T>(arg)``` Must represent a promotion that is guaranteed to succeed without overflow or loss of precision. There must be a promotion – it cannot be applied redundantly.
 
-+ T promote_here<T>(arg) Does the same as promote_to but can also be applied redundantly making it equivalent to brace initialisation – it will not narrow. It is designed specifically for in place forced promotions as the name suggests. It is implemented as a type of functor that permits prefix application (promote_here<T>) arg which remains useful for forced promotions within expressions, although you will probably prefer to use one of the aliases defined below:
++ ```T promote_here<T>(arg)``` Does the same as promote_to but can also be applied redundantly making it equivalent to brace initialisation – it will not narrow. It is designed specifically for in place forced promotions as the name suggests. It is implemented as a type of functor that permits prefix application (promote_here<T>) arg which remains useful for forced promotions within expressions, although you will probably prefer to use one of the aliases defined below:
 ```C++
 using double_here = promote_here<double>;
 using long_double_here = promote_here<long double>;
@@ -80,7 +80,7 @@ In turn each conversion that you use keeps it's potential hazards visible in its
 + approx_to may loose precision but will not overflow (unless you are trying to estimate the number of atoms in the universe)
 + promote_to and promote_here can never overflow nor loose precision
 
-Overflow checking is a pre-compiler option. By default it is enabled in Debug builds and absent in Release builds but you can override this by defining XNR_CONVERSION_OVERFLOW_CHECKING before including numerical_conversions.h. 
+Overflow checking is a pre-compiler option. By default it is enabled in Debug builds and absent in Release builds but you can override this by defining ```XNR_CONVERSION_OVERFLOW_CHECKING``` before including numerical_conversions.h. 
 ```C++
 #define XNR_CONVERSION_OVERFLOW_CHECKING 1 /*to enable checking*/
 //or 
