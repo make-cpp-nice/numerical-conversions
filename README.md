@@ -89,4 +89,6 @@ Overflow checking is a pre-compiler option. By default it is enabled in Debug bu
 ``` 
 Regardless of this setting the conversions to_signed_cast,  to_unsigned_cast, narrow_cast_to will not throw because they represent an intention to allow overflow to occur and exploit it. 
 
-There is not much of a learning curve to using these conversions instead of static_cast and the result is something more readable, more informative, more type safe and that keeps hazards to numeric integrity more controlled and isible.
+There is not much of a learning curve to using these conversions instead of static_cast and the result is something more readable, more informative, more type safe and that keeps hazards to numeric integrity more controlled and visible.
+
+Please post any feedback or comments on [Comment and discussion](https://github.com/make-cpp-nice/numerical-conversions/discussions/1)
